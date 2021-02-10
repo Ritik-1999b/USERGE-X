@@ -60,11 +60,13 @@ async def pm_logger_(message: Message):
     filters.private
     & filters.incoming
     & ~filters.me
+    & ~filters.user(Config.TG_IDS)
     & ~filters.service
     & ~filters.bot
     & ~filters.edited
     & ~allowAllFilter
-    & allowPmLoggingFilter
+    & allowPmLoggingFilter,
+    group=2,
 )
 async def pm_logger(_, message: Message):
     u_id = message.from_user.id
@@ -191,6 +193,7 @@ async def list_no_pm_log_users(message: Message):
             + str(c["user_id"])
             + "\n\n"
         )
+
     await message.edit_or_send_as_file(
         ("**PM Logging Disabled For :**\n\n" + msg) if msg else "`Logging All PMS`"
     )

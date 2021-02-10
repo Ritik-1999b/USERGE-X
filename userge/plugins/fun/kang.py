@@ -12,15 +12,15 @@ import io
 import os
 import random
 
-import emoji
 from bs4 import BeautifulSoup as bs
 from PIL import Image
+from pyrogram import emoji
 from pyrogram.errors import StickersetInvalid, YouBlockedUser
 from pyrogram.raw.functions.messages import GetStickerSet
 from pyrogram.raw.types import InputStickerSetShortName
 
 from userge import Config, Message, userge
-from userge.utils.helper import AioHttp
+from userge.utils import get_response
 
 
 @userge.on_cmd(
@@ -84,7 +84,9 @@ async def kang_(message: Message):
             else:
                 emoji_ = args[0]
 
-        if emoji_ and emoji_ not in emoji.UNICODE_EMOJI:
+        if emoji_ and emoji_ not in (
+            getattr(emoji, _) for _ in dir(emoji) if not _.startswith("_")
+        ):
             emoji_ = None
         if not emoji_:
             emoji_ = "🤔"
@@ -295,7 +297,7 @@ KANGING_STR = (
     },
 )
 async def sticker_search(message: Message):
-    """search sticker packs"""
+    # search sticker packs
     reply = message.reply_to_message
     query_ = None
     if message.input_str:
@@ -311,8 +313,16 @@ async def sticker_search(message: Message):
     await message.edit(f'🔎 Searching for sticker packs for "`{query_}`"...')
     titlex = f'<b>Sticker Packs For:</b> "<u>{query_}</u>"\n'
     sticker_pack = ""
-    text = await AioHttp.get_text(f"https://combot.org/telegram/stickers?q={query_}")
-    soup = bs(text[1], "lxml")
+    try:
+        text = await get_response.text(
+            f"https://combot.org/telegram/stickers?q={query_}"
+        )
+    except ValueError:
+        return await message.err(
+            "Response was not 200!, Api is having some issues\n Please try again later.",
+            del_in=5,
+        )
+    soup = bs(text, "lxml")
     results = soup.find_all("div", {"class": "sticker-pack__header"})
     for pack in results:
         if pack.button:
