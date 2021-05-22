@@ -1,10 +1,10 @@
 # pylint: disable=missing-module-docstring
 #
-# Copyright (C) 2020 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
+# Copyright (C) 2020-2021 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
 #
 # This file is part of < https://github.com/UsergeTeam/Userge > project,
 # and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/uaudith/Userge/blob/master/LICENSE >
+# Please see < https://github.com/UsergeTeam/Userge/blob/master/LICENSE >
 #
 # All rights reserved.
 
@@ -125,9 +125,12 @@ class Message(RawMessage):
         """
         user_e: Optional[Union[str, int]] = None
         text: Optional[str] = None
-        if self.reply_to_message:
-            if self.reply_to_message.from_user:
-                user_e = self.reply_to_message.from_user.id
+        reply = self.reply_to_message
+        if reply and not reply.forward_sender_name:
+            if reply.forward_from:
+                user_e = reply.forward_from.id
+            elif reply.from_user:
+                user_e = reply.from_user.id
             text = self.filtered_input_str
             return user_e, text
         if self.filtered_input_str:
